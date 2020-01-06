@@ -70,10 +70,14 @@ class MainActivity : AppCompatActivity() {
         dialog = SpotsDialog.Builder().setContext(this).setCancelable(false).build()
         cloudFunctions = RetrofitCloudClient.getInstance().create(iCloudFunctions::class.java)
         listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+
+
+
+
+
+
             val user = firebaseAuth.currentUser
-
             if(user != null){
-
                checkUserFromFirebase(user!!)
 
             }

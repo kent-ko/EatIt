@@ -1,11 +1,11 @@
 package com.s.eatit.ui.cart
 
+import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.*
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -30,6 +30,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.fragment_cart.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -47,6 +48,7 @@ class CartFragment : Fragment() {
     var group_place_holder: CardView?= null
     var recycler_cart:RecyclerView?= null
     var adapter:MyCartAdapter?=null
+    var btn_place_order: Button?=null
 
 
 
@@ -153,6 +155,59 @@ class CartFragment : Fragment() {
         txt_empty_cart = root.findViewById(R.id.txt_empty_cart) as TextView
         txt_total_price = root.findViewById(R.id.txt_total_price) as TextView
         group_place_holder = root.findViewById(R.id.group_place_holder) as CardView
+        btn_place_order = root.findViewById(R.id.btn_place_order) as Button
+
+        btn_place_order!!.setOnClickListener {
+
+            val builder = AlertDialog.Builder(context!!)
+            builder.setTitle("One More Step!")
+
+
+            val view = LayoutInflater.from(context).inflate(R.layout.layoout_place_order, null)
+
+            val edt_Address = view.findViewById<View>(R.id.edt_address) as EditText
+            val rdi_home = view.findViewById<View>(R.id.rdi_home_address) as RadioButton
+            val rdi_other_address = view.findViewById<View>(R.id.rdi_other_address) as RadioButton
+            val rdi_ship_to_other_address = view.findViewById<View>(R.id.rdi_other_address) as RadioButton
+            val rdi_cod = view.findViewById<View>(R.id.rdi_cod) as RadioButton
+            val brainTree = view.findViewById<View>(R.id.rdi_brantree) as RadioButton
+
+            //Data
+            edt_Address.setText(Common.currentUser!!.address!!) //default, we checked rdi_hometherefore we will displayuser's address
+
+            //Event
+
+            rdi_home.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (isChecked)
+                {
+                    edt_Address.setText(Common.currentUser!!.address!!)
+                }
+            }
+
+            rdi_other_address.setOnCheckedChangeListener { buttonView, isChecked ->
+
+                if (isChecked)
+                {
+                    edt_Address.setText("")
+                    edt_Address.setHint("Enter your Address")
+                }
+            }
+
+            rdi_ship_to_other_address.setOnCheckedChangeListener { buttonView, isChecked ->
+
+                if (isChecked)
+                {
+                    Toast.makeText(context!!, "Implement with Google API later", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            builder.setView(view)
+            builder.setNegativeButton("NO", {dialogInterface, _ -> dialogInterface.dismiss()})
+                    .setPositiveButton("YES", {dialogInterface, _ -> Toast.makeText(context!!, "Implement later", Toast.LENGTH_SHORT).show()})
+
+            val dialog = builder.create()
+            dialog.show()
+        }
     }
 
     private fun sumCart() {
@@ -200,8 +255,6 @@ class CartFragment : Fragment() {
         super.onResume()
         calculateTotalPrice()
     }
-
-
 
     @Subscribe(sticky = true , threadMode = ThreadMode.MAIN)
     fun onUpdateItemInCart(event: UpdateItemCart){
