@@ -16,7 +16,7 @@ abstract class CartDatabase : RoomDatabase() {
         {
             if (instance == null)
             {
-                instance = Room.databaseBuilder<CartDatabase>(context, CartDatabase::class.java!!, "EatItDB!").build()
+                instance = Room.databaseBuilder<CartDatabase>(context, CartDatabase::class.java!!, "EatItDB1").build()
             }
             return instance!!
         }

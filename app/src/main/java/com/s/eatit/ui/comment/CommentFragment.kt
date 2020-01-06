@@ -22,9 +22,11 @@ import com.google.firebase.database.ValueEventListener
 import com.s.eatit.Adapters.MyCommentAdapter
 import com.s.eatit.Callback.ICommentCallBack
 import com.s.eatit.Common.Common
+import com.s.eatit.EventBus.HideFABCart
 import com.s.eatit.Model.CommentModel
 import com.s.eatit.R
 import dmax.dialog.SpotsDialog
+import org.greenrobot.eventbus.EventBus
 
 class CommentFragment : BottomSheetDialogFragment(), ICommentCallBack {
 
@@ -45,6 +47,8 @@ class CommentFragment : BottomSheetDialogFragment(), ICommentCallBack {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+
 
         val itemView = LayoutInflater.from(context).inflate(R.layout.bottom_sheet_comment_fragment, container, false)
 

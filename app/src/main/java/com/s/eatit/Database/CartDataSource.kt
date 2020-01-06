@@ -9,7 +9,7 @@ interface CartDataSource {
 
     fun countItemInCart(uid: String): Single<Int>
 
-    fun sumPrice(uid: String): Single<Long>
+    fun sumPrice(uid: String): Single<Double>
 
     fun getItemInCart(foodId: String, uid: String): Single<CartItem>
 
@@ -20,5 +20,8 @@ interface CartDataSource {
     fun deleteCart(cart: CartItem): Single<Int>
 
     fun cleanCart(uid: String): Single<Int>
+
+    fun getItemWithAllOptionsInCart(uid: String, foodId: String, foodSize:String, foodAddon:String) : Single<CartItem>
+
 
 }

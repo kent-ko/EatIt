@@ -11,10 +11,13 @@ import butterknife.BindView
 import butterknife.ButterKnife
 import butterknife.Unbinder
 import com.bumptech.glide.Glide
+import com.s.eatit.Callback.IRecyclerItemClickListener
+import com.s.eatit.EventBus.PopularFoodItemClick
 import com.s.eatit.Model.PopularCategoryModel
 import com.s.eatit.R
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.layout_popular_categories_items.view.*
+import org.greenrobot.eventbus.EventBus
 
 class MyPopularCategoriesAdapter(internal var context: Context,
                                  internal var popularCategoryModels: List<PopularCategoryModel>):
@@ -34,16 +37,40 @@ RecyclerView.Adapter<MyPopularCategoriesAdapter.MyViewHolder>(){
 
         Glide.with(context).load(popularCategoryModels.get(position).image).into(holder.category_image!!)
         holder.category_name!!.setText(popularCategoryModels.get(position).name)
+
+        //onclick listener
+        holder.setListener(object :IRecyclerItemClickListener{
+            override fun onItemClick(view: View, pos: Int) {
+                EventBus.getDefault()
+                    .postSticky(PopularFoodItemClick(popularCategoryModels[pos]))
+            }
+
+        })
     }
 
-    inner class MyViewHolder(itemView:View) : RecyclerView.ViewHolder(itemView){
+    inner class MyViewHolder(itemView:View) : RecyclerView.ViewHolder(itemView),
+        View.OnClickListener {
+
+        override fun onClick(po:View?)
+        {
+            listener!!.onItemClick(po!!, adapterPosition)
+        }
 
         var category_name:TextView?=null
         var category_image:CircleImageView?=null
 
+        internal var listener : IRecyclerItemClickListener?=null
+
+        fun setListener(listener: IRecyclerItemClickListener)
+        {
+            this.listener = listener
+        }
+
         init {
             category_name = itemView.findViewById(R.id.txt_category_name) as TextView
             category_image = itemView.findViewById(R.id.category_image) as CircleImageView
+
+            itemView.setOnClickListener(this)
         }
 
     }

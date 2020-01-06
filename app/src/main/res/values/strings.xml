@@ -11,7 +11,7 @@
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_foodDetail">Food Detail</string>
-    <string name="menu_tools">Tools</string>
+    <string name="menu_cart">Cart</string>
     <string name="menu_share">Share</string>
     <string name="menu_food_list">Food List</string>
     <string name="popular_categories">Popular Categories</string>
@@ -20,5 +20,7 @@
     <string name="size">Size</string>
     <string name="add_on">Add on</string>
     <string name="example">Example</string>
+    <string name="clear_cart">Clear Cart</string>
+    <string name="sign_out">Sign Out</string>
 
 </resources>

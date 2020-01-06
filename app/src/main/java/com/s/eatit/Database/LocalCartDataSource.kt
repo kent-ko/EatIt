@@ -5,6 +5,7 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 
 class LocalCartDataSource(private val cartDAO: CartDAO) : CartDataSource {
+
     override fun getAllCart(uid: String): Flowable<List<CartItem>> {
         return cartDAO.getAllCart(uid)
     }
@@ -13,7 +14,7 @@ class LocalCartDataSource(private val cartDAO: CartDAO) : CartDataSource {
         return cartDAO.countItemInCart(uid)
     }
 
-    override fun sumPrice(uid: String): Single<Long> {
+    override fun sumPrice(uid: String): Single<Double> {
         return cartDAO.sumPrice(uid)
     }
 
@@ -35,5 +36,14 @@ class LocalCartDataSource(private val cartDAO: CartDAO) : CartDataSource {
 
     override fun cleanCart(uid: String): Single<Int> {
         return cartDAO.cleanCart(uid)
+    }
+
+    override fun getItemWithAllOptionsInCart(
+        uid: String,
+        foodId: String,
+        foodSize: String,
+        foodAddon: String
+    ): Single<CartItem> {
+        return cartDAO. getItemWithAllOptionsInCart(uid, foodId, foodSize, foodAddon)
     }
 }

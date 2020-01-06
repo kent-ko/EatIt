@@ -8,8 +8,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.asksira.loopingviewpager.LoopingPagerAdapter
 import com.bumptech.glide.Glide
+import com.s.eatit.EventBus.BestDealItemClick
 import com.s.eatit.Model.BestDealModel
 import com.s.eatit.R
+import org.greenrobot.eventbus.EventBus
 
 class MyBestDealsAdapter(context:Context,
                          itemList:List<BestDealModel>,
@@ -27,6 +29,10 @@ class MyBestDealsAdapter(context:Context,
         //set data
         Glide.with(context).load(itemList[listPosition].image).into(imageView)
         textView.text = itemList[listPosition].name
+
+        convertView.setOnClickListener{
+            EventBus.getDefault().postSticky(BestDealItemClick(itemList[listPosition]))
+        }
     }
 
 }

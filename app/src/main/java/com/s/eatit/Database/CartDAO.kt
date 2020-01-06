@@ -11,11 +11,11 @@ interface CartDAO {
     @androidx.room.Query("SELECT * FROM Cart WHERE uid=:uid")
     fun getAllCart(uid: String): Flowable<List<CartItem>>
 
-    @androidx.room.Query("SELECT COUNT(*) FROM Cart WHERE uid=:uid")
+    @androidx.room.Query("SELECT COUNT(foodQuantity) FROM Cart WHERE uid=:uid")
     fun countItemInCart(uid: String): Single<Int>
 
-    @androidx.room.Query("SELECT SUM(foodQuantity * foodPrice) + (foodExtraPrice*foodQuantity) FROM Cart WHERE uid=:uid")
-    fun sumPrice(uid: String): Single<Long>
+     @Query("SELECT SUM((foodPrice * foodExtraPrice)*foodQuantity) FROM Cart WHERE uid=:uid")
+    fun sumPrice(uid: String): Single<Double>
 
     @androidx.room.Query("SELECT * FROM Cart WHERE foodId=:foodId AND uid=:uid")
     fun getItemInCart(foodId: String, uid: String): Single<CartItem>
@@ -31,4 +31,7 @@ interface CartDAO {
 
     @androidx.room.Query("DELETE FROM Cart WHERE uid=:uid")
     fun cleanCart(uid: String): Single<Int>
+
+    @Query("SELECT * FROM Cart WHERE foodId=:foodId AND uid =:uid AND foodsize =:foodSize AND foodAddon =:foodAddon")
+    fun getItemWithAllOptionsInCart(uid: String, foodId: String, foodSize:String, foodAddon:String) : Single<CartItem>
 }
