@@ -15,6 +15,13 @@ import com.google.android.gms.auth.api.Auth
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.DexterActivity
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.s.eatit.Common.Common
 import com.s.eatit.Model.UserModel
 import com.s.eatit.Remote.RetrofitCloudClient
@@ -71,20 +78,33 @@ class MainActivity : AppCompatActivity() {
         cloudFunctions = RetrofitCloudClient.getInstance().create(iCloudFunctions::class.java)
         listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
 
+            Dexter.withActivity(this@MainActivity)
+                .withPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                .withListener(object :PermissionListener{
+                    override fun onPermissionGranted(response: PermissionGrantedResponse?) {
 
+                        val user = firebaseAuth.currentUser
 
+                        if (user!=null){
+                            checkUserFromFirebase(user!!)
+                        }
+                        else
+                        {
+                            phoneLogin()
+                        }
+                    }
 
+                    override fun onPermissionRationaleShouldBeShown(
+                        permission: PermissionRequest?,
+                        token: PermissionToken?
+                    ) {
+                    }
 
+                    override fun onPermissionDenied(response: PermissionDeniedResponse?) {
+                        Toast.makeText(this@MainActivity, "You must accept this permission  to use this app", Toast.LENGTH_SHORT).show()
+                    }
 
-            val user = firebaseAuth.currentUser
-            if(user != null){
-               checkUserFromFirebase(user!!)
-
-            }
-            else
-            {
-                phoneLogin()
-            }
+                }).check()
         }
     }
 

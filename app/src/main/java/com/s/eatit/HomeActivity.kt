@@ -248,6 +248,7 @@ class HomeActivity : AppCompatActivity() {
                                         if (p0.exists())
                                         {
 
+                                            dialog!!.dismiss()
                                             for (foodSnapShot in p0.children)
                                                 Common.foodSelected = foodSnapShot.getValue(FoodModel::class.java)
                                             navController!!.navigate(R.id.nav_food_detail)
@@ -317,6 +318,7 @@ class HomeActivity : AppCompatActivity() {
                                         if (p0.exists())
                                         {
 
+                                            dialog!!.dismiss()
                                             for (foodSnapShot in p0.children)
                                                 Common.foodSelected = foodSnapShot.getValue(FoodModel::class.java)
                                             navController!!.navigate(R.id.nav_food_detail)

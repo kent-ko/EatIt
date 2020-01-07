@@ -2,7 +2,10 @@ package com.s.eatit.ui.cart
 
 import android.app.AlertDialog
 import android.graphics.Color
+import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
+import android.os.Looper
 import android.os.Parcelable
 import android.view.*
 import android.widget.*
@@ -14,6 +17,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.andremion.counterfab.CounterFab
+import com.google.android.gms.location.*
 import com.s.eatit.Adapters.MyCartAdapter
 import com.s.eatit.Callback.IMyButtonCallBack
 import com.s.eatit.Common.Common
@@ -25,16 +29,20 @@ import com.s.eatit.EventBus.CounterCartEvent
 import com.s.eatit.EventBus.HideFABCart
 import com.s.eatit.EventBus.UpdateItemCart
 import com.s.eatit.R
+import io.reactivex.Single
 import io.reactivex.SingleObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_cart.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.io.IOException
 import java.lang.StringBuilder
+import java.util.*
 
 class CartFragment : Fragment() {
 
@@ -49,6 +57,11 @@ class CartFragment : Fragment() {
     var recycler_cart:RecyclerView?= null
     var adapter:MyCartAdapter?=null
     var btn_place_order: Button?=null
+
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallBack: LocationCallback
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var currentLocation: Location
 
 
 
@@ -69,6 +82,8 @@ class CartFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_cart, container, false)
 
         initViews(root)
+
+        iniLocation()
 
         cartViewModel.getMutableLiveDataCartItem().observe(this, Observer {
 
@@ -94,6 +109,34 @@ class CartFragment : Fragment() {
 //            textView.text = it
 //        })
         return root
+    }
+
+    private fun iniLocation() {
+        buildLocationRequest()
+        buildLocationCallback()
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context!!)
+        fusedLocationProviderClient!!.requestLocationUpdates(locationRequest, locationCallBack,
+            Looper.getMainLooper())
+    }
+
+    private fun buildLocationCallback() {
+        locationCallBack = object : LocationCallback(){
+            override fun onLocationResult(p0: LocationResult?) {
+                super.onLocationResult(p0)
+
+                currentLocation = p0!!.lastLocation
+            }
+        }
+    }
+
+    private fun buildLocationRequest() {
+        locationRequest = LocationRequest()
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+        locationRequest.setInterval(5000)
+        locationRequest.setFastestInterval(3000)
+        locationRequest.setSmallestDisplacement(10f)
+
     }
 
     private fun initViews(root: View?) {
@@ -165,6 +208,8 @@ class CartFragment : Fragment() {
 
             val view = LayoutInflater.from(context).inflate(R.layout.layoout_place_order, null)
 
+            val edt_comment = view.findViewById<View>(R.id.edt_comment) as EditText
+            val txt_address = view.findViewById<View>(R.id.txt_address_detail) as TextView
             val edt_Address = view.findViewById<View>(R.id.edt_address) as EditText
             val rdi_home = view.findViewById<View>(R.id.rdi_home_address) as RadioButton
             val rdi_other_address = view.findViewById<View>(R.id.rdi_other_address) as RadioButton
@@ -181,6 +226,7 @@ class CartFragment : Fragment() {
                 if (isChecked)
                 {
                     edt_Address.setText(Common.currentUser!!.address!!)
+                    txt_address.visibility = View.GONE
                 }
             }
 
@@ -190,6 +236,7 @@ class CartFragment : Fragment() {
                 {
                     edt_Address.setText("")
                     edt_Address.setHint("Enter your Address")
+                    txt_address.visibility = View.GONE
                 }
             }
 
@@ -197,7 +244,38 @@ class CartFragment : Fragment() {
 
                 if (isChecked)
                 {
-                    Toast.makeText(context!!, "Implement with Google API later", Toast.LENGTH_SHORT).show()
+                    fusedLocationProviderClient!!.lastLocation
+                        .addOnFailureListener{ e ->
+                            txt_address.visibility = View.VISIBLE
+                                Toast.makeText(context, "" + e.message,
+                                    Toast.LENGTH_SHORT).show() }
+                        .addOnCompleteListener{ task ->
+                            val coordinates = StringBuilder()
+                                .append(task.result!!.latitude)
+                                .append("/")
+                                .append(task.result!!.longitude)
+                                .toString()
+
+                            val singleAddress = Single.just(getAddressFromLatLong(task.result!!.latitude, task.result!!.longitude))
+
+                            val disposable = singleAddress.subscribeWith(object :DisposableSingleObserver<String>(){
+                                override fun onSuccess(t: String) {
+
+                                    edt_Address.setText(coordinates)
+                                    txt_address.visibility = View.VISIBLE
+                                    txt_address.setText(t)
+                                }
+
+                                override fun onError(e: Throwable) {
+                                    edt_Address.setText(coordinates)
+                                    txt_address.visibility = View.VISIBLE
+                                    txt_address.setText(e.message)
+                                }
+
+                            })
+
+
+                        }
                 }
             }
 
@@ -208,6 +286,35 @@ class CartFragment : Fragment() {
             val dialog = builder.create()
             dialog.show()
         }
+    }
+
+    private fun getAddressFromLatLong(latitude: Double, longitude: Double): String {
+
+        val geoCoder = Geocoder(context!!, Locale.getDefault())
+        var result:String?=null
+
+        try {
+            val addressList = geoCoder.getFromLocation(latitude, longitude, 1)
+
+            if (addressList != null && addressList.size > 0)
+            {
+                val address = addressList[0]
+                val sb = StringBuilder(address.getAddressLine(0))
+
+                result = sb.toString()
+            }
+            else
+            {
+
+                result = "Address Not Found"
+            }
+
+            return result
+        } catch (e:IOException)
+        {
+            return e.message!!
+        }
+
     }
 
     private fun sumCart() {
@@ -240,7 +347,7 @@ class CartFragment : Fragment() {
     }
 
     override fun onStop() {
-        super.onStop()
+
 
         cartViewModel.onStop()
         compositeDisposable.clear()
@@ -249,11 +356,22 @@ class CartFragment : Fragment() {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this)
         }
+
+        if (fusedLocationProviderClient != null)
+        {
+            fusedLocationProviderClient.removeLocationUpdates(locationCallBack)
+        }
+
+        super.onStop()
     }
 
     override fun onResume() {
         super.onResume()
         calculateTotalPrice()
+        if (fusedLocationProviderClient != null){
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallBack,
+                Looper.getMainLooper())
+        }
     }
 
     @Subscribe(sticky = true , threadMode = ThreadMode.MAIN)
